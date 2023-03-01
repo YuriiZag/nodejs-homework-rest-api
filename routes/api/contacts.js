@@ -1,47 +1,25 @@
 const { requestValidation } = require("../../middlewares/validationMiddleware");
 const express = require("express");
-const {
-  listContacts,
-  getContactById,
-  removeContact,
-  addContact,
-  updateContact,
-} = require("../../models/contacts");
+
+const { listContactsController, getContactByIdController, addContactController, removeContactController, updateContactController, updateFavoriteStatusController } = require("../../controllers/contactControllers");
+const { asyncWraper } = require("../../helpers/apiHelpers");
+
 const router = express.Router();
 
-router.get("/", async (req, res, next) => {
-  const contacts = await listContacts();
-  res.json({ contacts });
-});
+router.get("/", asyncWraper(listContactsController));
 
-router.get("/:contactId", async (req, res, next) => {
-  const contact = await getContactById(req.params.contactId);
-  if (contact === undefined) {
-    return res.status(404).json({ message: "Not found" });
-  }
-  res.json({ contact });
-});
+router.get("/:contactId", asyncWraper(getContactByIdController));
 
-router.post("/", requestValidation, async (req, res, next) => {
-  const contact = await addContact(req.body);
-  res.json({ contact });
-});
+router.post("/", requestValidation, asyncWraper(addContactController));
 
-router.delete("/:contactId", async (req, res, next) => {
-  if ((await getContactById(req.params.contactId)) === undefined) {
-    return res.status(404).json({ message: "Not found" });
-  }
-  await removeContact(req.params.contactId);
-  res.json({ message: "contact deleted" });
-});
+router.delete("/:contactId", asyncWraper(removeContactController));
 
-router.put("/:contactId", requestValidation, async (req, res, next) => {
-  if ((await getContactById(req.params.contactId)) === undefined) {
-    return res.status(404).json({ message: "Not found" });
-  }
-  await updateContact(req.params.contactId, req.body);
-  const contact = await getContactById(req.params.contactId);
-  res.json({ contact });
-});
+router.put(
+  "/:contactId",
+  requestValidation,
+  asyncWraper(updateContactController)
+);
+
+router.patch("/:contactId", asyncWraper(updateFavoriteStatusController));
 
 module.exports = router;
