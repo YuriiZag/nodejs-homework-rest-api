@@ -1,21 +1,41 @@
-const { requestValidation } = require("../../middlewares/validationMiddleware");
 const express = require("express");
 
-const { listContactsController, getContactByIdController, addContactController, removeContactController, updateContactController, updateFavoriteStatusController } = require("../../controllers/contactControllers");
+const { requestValidation } = require("../../middlewares/validationMiddleware");
 const { asyncWraper } = require("../../helpers/apiHelpers");
+
+const {
+  listContactsController,
+  getContactByIdController,
+  addContactController,
+  removeContactController,
+  updateContactController,
+  updateFavoriteStatusController,
+} = require("../../controllers/contactControllers");
+const { tokenCheckout } = require("../../middlewares/tokenCheckoutMiddleware");
+
 
 const router = express.Router();
 
-router.get("/", asyncWraper(listContactsController));
+router.get("/",tokenCheckout, asyncWraper(listContactsController));
 
-router.get("/:contactId", asyncWraper(getContactByIdController));
+router.get("/:contactId", tokenCheckout, asyncWraper(getContactByIdController));
 
-router.post("/", requestValidation, asyncWraper(addContactController));
+router.post(
+  "/",
+  requestValidation,
+  tokenCheckout,
+  asyncWraper(addContactController)
+);
 
-router.delete("/:contactId", asyncWraper(removeContactController));
+router.delete(
+  "/:contactId",
+  tokenCheckout,
+  asyncWraper(removeContactController)
+);
 
 router.put(
   "/:contactId",
+  tokenCheckout,
   requestValidation,
   asyncWraper(updateContactController)
 );

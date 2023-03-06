@@ -1,4 +1,4 @@
-const { ValidationError, UnexistedContactError } = require("./errors");
+const { PhonebookError } = require("./errors");
 
 const asyncWraper = (controller) => {
     return (req, res, next) => {
@@ -7,8 +7,8 @@ const asyncWraper = (controller) => {
 };
 
 const errorHandler = (error, req, res, next) => {
-    if (error instanceof ValidationError || error instanceof UnexistedContactError) {
-        return res.status(error.status).json({ message: error.message });
+    if (error instanceof PhonebookError) {
+      return res.status(error.status).json({ message: error.message });
     }
     res.status(500).json({ message: error.message })
 }

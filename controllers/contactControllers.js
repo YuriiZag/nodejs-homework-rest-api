@@ -8,34 +8,35 @@ const {
 } = require("../models/contacts");
 
 const listContactsController = async (req, res) => {
-  const contacts = await listContacts();
+  const {userId, query} = req
+  const contacts = await listContacts(userId, query.page, query.limit);
   res.json({ contacts });
 };
 
 const getContactByIdController = async (req, res) => {
-  const contact = await getContactById(req.params.contactId);
+  const contact = await getContactById(req.params.contactId, req.userId);
   res.json({ contact });
 };
 
 const removeContactController = async (req, res) => {
-  await removeContact(req.params.contactId);
+  await removeContact(req.params.contactId, req.userId);
   res.json({ message: "success" });
 };
 
 const addContactController = async (req, res) => {
-  await addContact(req.body);
+  await addContact(req.body, req.userId);
   res.json({ message: "success" });
 };
 
 const updateContactController = async (req, res) => {
-  await updateContact(req.params.contactId, req.body);
-  const contact = await getContactById(req.params.contactId);
+  await updateContact(req.params.contactId, req.body, req.userId);
+  const contact = await getContactById(req.params.contactId, req.userId);
   res.json({ contact });
 };
 
 const updateFavoriteStatusController = async (req, res) => {
-  await updateFavoriteStatus(req.params.contactId, req.body);
-  const contact = await getContactById(req.params.contactId);
+  await updateFavoriteStatus(req.params.contactId, req.body, req.userId);
+  const contact = await getContactById(req.params.contactId, req.userId);
   res.json({ contact });
 };
 
