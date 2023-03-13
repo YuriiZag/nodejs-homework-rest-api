@@ -30,11 +30,21 @@ const currentUserController = async (req, res) => {
   const user = await currentUser(req.userId);
   
   res.json({ user: { email: user.email, subscription: user.subscription } });
-};
+}; 
+
+const verificationMailSendlerController = async (req, res) => {
+
+}
+
+const resendEmailController = async (req, res) => {
+
+}
 
 module.exports = {
   registerController,
   loginController,
   currentUserController,
   logoutController,
+  verificationMailSendlerController,
+  resendEmailController,
 };

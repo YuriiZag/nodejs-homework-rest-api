@@ -2,6 +2,7 @@ const { User } = require("../db/userModel");
 const { UnauthorizedError, ConflictError } = require("../helpers/errors");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+const { v4: uuidv4 } = require("uuid");
 
 const registerHandler = async ({
   email,
@@ -12,6 +13,7 @@ const registerHandler = async ({
     email,
     password,
     subscription,
+    verificationToken: uuidv4(),
   });
   try {
     await user.save();
@@ -27,6 +29,9 @@ const loginHandler = async ({ email, password }) => {
   const user = await User.findOne({ email });
   if (!user) {
     throw new UnauthorizedError(`No user with email: ${email} has been found`);
+  }
+  if (user.verify === false) {
+    throw new UnauthorizedError("Your email isn't verified");
   }
   const comparation = await bcrypt.compare(password, user.password);
 
@@ -57,4 +62,14 @@ const currentUser = async (userId) => {
   return user;
 };
 
-module.exports = { registerHandler, loginHandler, logoutHandler, currentUser };
+const verificationMailSendler = async (verificationToken) => {};
+
+const resendEmailHandler = async (email) => {};
+
+module.exports = {
+  registerHandler,
+  loginHandler,
+  logoutHandler,
+  currentUser,
+  verificationMailSendler,
+};
