@@ -3,6 +3,7 @@ const {
   loginHandler,
   logoutHandler,
   currentUser,
+  avatarChangeHandler,
 } = require("../models/auth");
 
 const registerController = async (req, res) => {
@@ -40,6 +41,13 @@ const resendEmailController = async (req, res) => {
 
 }
 
+const avatarChangeController = async (req, res) => {
+  
+  const { originalname } = req.file;
+  const avatarPath = await avatarChangeHandler(originalname, req.userId);
+  res.json({ avatarPath: avatarPath });
+};
+
 module.exports = {
   registerController,
   loginController,
@@ -47,4 +55,5 @@ module.exports = {
   logoutController,
   verificationMailSendlerController,
   resendEmailController,
+  avatarChangeController
 };

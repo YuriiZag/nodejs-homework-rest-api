@@ -7,6 +7,7 @@ const tokenCheckout = (req, res, next) => {
     next(new UnauthorizedError("Please, provide a token"));
   } else {
     const user = jwt.decode(token, process.env.JWT_SECRET);
+    
     if (!user) {
       next(new UnauthorizedError("Please, provide a token"));
     } else {
