@@ -1,5 +1,5 @@
 const { User } = require("../db/userModel");
-const { UnauthorizedError, ConflictError } = require("../helpers/errors");
+const { UnauthorizedError, ConflictError, AuthorizedStateError, UnexistedTokenError } = require("../helpers/errors");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const { v4: uuidv4 } = require("uuid");
@@ -25,6 +25,7 @@ const registerHandler = async ({
     verificationToken: uuidv4(),
     avatarUrl,
   });
+  
   try {
     await user.save();
   } catch (error) {
@@ -32,6 +33,9 @@ const registerHandler = async ({
       throw new ConflictError(`email ${email} is already in use`);
     }
   }
+
+  // email send logic 
+
   return user;
 };
 
@@ -40,7 +44,7 @@ const loginHandler = async ({ email, password }) => {
   if (user.verify === false) {
     throw new UnauthorizedError("Your email isn't verified");
   }
-  
+
   const comparation = await bcrypt.compare(password, user.password);
 
   if (!comparation) {
@@ -80,16 +84,33 @@ const avatarChangeHandler = async (originalname, userId) => {
   return `/api/avatars/${avatarName}`;
 };
 
-const verificationMailSendler = async (verificationToken) => {};
+const verificationMailChecker = async (verificationToken) => {
+  const user = await User.findOne({ verificationToken })
+  if (!user) {
+    throw UnexistedTokenError("User not found")
+  }
+  User.findByIdAndUpdate(user._id.toString(), {
+    $set: {
+      verify: true,
+      verificationToken: null,
+      }
+  })
+};
 
-const resendEmailHandler = async (email) => {};
+const resendEmailHandler = async (email) => {
+  const user = await userCheckoutByEmail(email);
+  if (user.verify === true) {
+    throw new AuthorizedStateError(`Verification has already been passed`);
+  }
+  // email send logic
+};
 
 module.exports = {
   registerHandler,
   loginHandler,
   logoutHandler,
   currentUser,
-  verificationMailSendler,
+  verificationMailChecker,
   avatarChangeHandler,
-  resendEmailHandler
+  resendEmailHandler,
 };
