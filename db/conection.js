@@ -6,9 +6,7 @@ async function connectMongo() {
     await mongoose.set("strictQuery", true);
 
     await mongoose.connect(
-      
       process.env.DB_URI
-
     );
 
   } catch (error) {
