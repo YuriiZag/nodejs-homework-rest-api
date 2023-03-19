@@ -1,5 +1,10 @@
 const { User } = require("../db/userModel");
-const { UnauthorizedError, ConflictError, AuthorizedStateError, UnexistedTokenError } = require("../helpers/errors");
+const {
+  UnauthorizedError,
+  ConflictError,
+  AuthorizedStateError,
+  UnexistedTokenError,
+} = require("../helpers/errors");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const { v4: uuidv4 } = require("uuid");
@@ -10,6 +15,7 @@ const {
   userCheckoutById,
   userCheckoutByEmail,
 } = require("../helpers/userCheckout");
+const nodemailer = require("nodemailer");
 const fs = require("fs").promises;
 
 const registerHandler = async ({
@@ -25,7 +31,7 @@ const registerHandler = async ({
     verificationToken: uuidv4(),
     avatarUrl,
   });
-  
+
   try {
     await user.save();
   } catch (error) {
@@ -33,8 +39,27 @@ const registerHandler = async ({
       throw new ConflictError(`email ${email} is already in use`);
     }
   }
-
-  // email send logic 
+  const config = {
+    host: "smtp.meta.ua",
+    port: 465,
+    secure: true,
+    auth: {
+      user: "yuriizahrai@meta.ua",
+      pass: process.env.PASSWORD,
+    },
+  };
+  const emailOptions = {
+    from: "yuriizahrai@meta.ua",
+    to: `${email}`,
+    subject: "Email confirmation",
+    text: `http://localhost:3000/api/users/verify/:${user.verificationToken}`,
+    html: `<a href="http://localhost:3000/api/users/verify/:${user.verificationToken}">Confirmation link</a>`,
+  };
+  const transporter = nodemailer.createTransport(config);
+  transporter
+    .sendMail(emailOptions)
+    .then((info) => console.log(info))
+    .catch((err) => console.log(err));
 
   return user;
 };
@@ -85,16 +110,16 @@ const avatarChangeHandler = async (originalname, userId) => {
 };
 
 const verificationMailChecker = async (verificationToken) => {
-  const user = await User.findOne({ verificationToken })
+  const user = await User.findOne({ verificationToken });
   if (!user) {
-    throw UnexistedTokenError("User not found")
+    throw new UnexistedTokenError("User not found");
   }
-  User.findByIdAndUpdate(user._id.toString(), {
+  console.log(user.id);
+  await User.findByIdAndUpdate(user._id, {
     $set: {
       verify: true,
-      verificationToken: null,
-      }
-  })
+    },
+  });
 };
 
 const resendEmailHandler = async (email) => {
@@ -102,7 +127,28 @@ const resendEmailHandler = async (email) => {
   if (user.verify === true) {
     throw new AuthorizedStateError(`Verification has already been passed`);
   }
-  // email send logic
+  const config = {
+    host: "smtp.meta.ua",
+    port: 465,
+    secure: true,
+    auth: {
+      user: "yuriizahrai@meta.ua",
+      pass: process.env.PASSWORD,
+    },
+  };
+  const emailOptions = {
+    from: "yuriizahrai@meta.ua",
+    to: `${email}`,
+    subject: "Email confirmation",
+    text: `http://localhost:3000/api/users/verify/:${user.verificationToken}`,
+    html: `<a href="http://localhost:3000/api/users/verify/:${user.verificationToken}">Confirmation link</a>`,
+  };
+  const transporter = nodemailer.createTransport(config);
+  transporter
+    .sendMail(emailOptions)
+    .then((info) => console.log(info))
+    .catch((err) => console.log(err));
+  return user;
 };
 
 module.exports = {

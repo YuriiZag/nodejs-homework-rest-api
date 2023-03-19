@@ -44,6 +44,7 @@ const avatarChangeController = async (req, res) => {
 
 const verificationMailCheckerController = async (req, res) => {
   verificationMailChecker(req.params.verificationToken);
+  res.json({message: "Verification successfull"})
 }
 
 const resendEmailController = async (req, res) => {

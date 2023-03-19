@@ -22,7 +22,6 @@ router.post("/logout", tokenCheckout, asyncWraper(logoutController));
 router.post("/users/verify", emailResendValidation, asyncWraper(resendEmailController));
 router.get("/current", tokenCheckout, asyncWraper(currentUserController));
 router.get("/verify/:verificationToken", asyncWraper(verificationMailCheckerController));
-router.get("/current", tokenCheckout, asyncWraper(currentUserController))
 router.patch("/avatars", tokenCheckout, uploadMiddleware.single('avatar'), asyncWraper(avatarChangeController))
 
 module.exports = router;
