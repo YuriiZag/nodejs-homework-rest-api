@@ -13,17 +13,16 @@ const {
 } = require("../../controllers/contactControllers");
 const { tokenCheckout } = require("../../middlewares/tokenCheckoutMiddleware");
 
-
 const router = express.Router();
 
-router.get("/",tokenCheckout, asyncWraper(listContactsController));
+router.get("/", tokenCheckout, asyncWraper(listContactsController));
 
 router.get("/:contactId", tokenCheckout, asyncWraper(getContactByIdController));
 
 router.post(
   "/",
-  requestValidation,
   tokenCheckout,
+  requestValidation,
   asyncWraper(addContactController)
 );
 

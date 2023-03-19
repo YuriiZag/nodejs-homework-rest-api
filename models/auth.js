@@ -2,16 +2,26 @@ const { User } = require("../db/userModel");
 const { UnauthorizedError, ConflictError } = require("../helpers/errors");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+const gravatar = require("gravatar");
+const path = require("path");
+const Jimp = require("jimp");
+const {
+  userCheckoutById,
+  userCheckoutByEmail,
+} = require("../helpers/userCheckout");
+const fs = require("fs").promises;
 
 const registerHandler = async ({
   email,
   password,
   subscription = "starter",
 }) => {
+  const avatarUrl = await gravatar.url(email);
   const user = new User({
     email,
     password,
     subscription,
+    avatarUrl,
   });
   try {
     await user.save();
@@ -24,10 +34,7 @@ const registerHandler = async ({
 };
 
 const loginHandler = async ({ email, password }) => {
-  const user = await User.findOne({ email });
-  if (!user) {
-    throw new UnauthorizedError(`No user with email: ${email} has been found`);
-  }
+  const user = await userCheckoutByEmail(email);
   const comparation = await bcrypt.compare(password, user.password);
 
   if (!comparation) {
@@ -40,21 +47,38 @@ const loginHandler = async ({ email, password }) => {
 };
 
 const logoutHandler = async (userId) => {
-  const user = await User.findById(userId);
-  if (!user) {
-    throw new UnauthorizedError(`No user authorised`);
-  }
+  await userCheckoutById(userId);
   await User.findByIdAndUpdate(userId, { $set: { token: "" } });
 };
 
 const currentUser = async (userId) => {
-  console.log(userId);
-  const user = await User.findById(userId);
-
-  if (!user) {
-    throw new UnauthorizedError(`No user authorised`);
-  }
+  const user = await userCheckoutById(userId);
   return user;
 };
 
-module.exports = { registerHandler, loginHandler, logoutHandler, currentUser };
+const avatarChangeHandler = async (originalname, userId) => {
+  const uploadedPicPath = path.resolve(`./tmp/${originalname}`);
+  const avatarName = userId + "-" + originalname;
+  const user = await userCheckoutById(userId);
+  await User.findByIdAndUpdate(user._id.toString(), {
+    $set: { avatarUrl: `./public/avatars/${avatarName}` },
+  });
+  Jimp.read(uploadedPicPath, (err, picture) => {
+    if (err) {
+      console.log(err.message);
+    }
+    picture
+      .resize(250, 250)
+      .write(path.resolve(`./public/avatars/${avatarName}`));
+  });
+  fs.unlink(uploadedPicPath);
+  return `/api/avatars/${avatarName}`;
+};
+
+module.exports = {
+  registerHandler,
+  loginHandler,
+  logoutHandler,
+  currentUser,
+  avatarChangeHandler,
+};
