@@ -10,7 +10,19 @@ class ValidationError extends PhonebookError {
     this.status = 400;
   }
 }
+class AuthorizedStateError extends PhonebookError {
+  constructor(message) {
+    super(message);
+    this.status = 400;
+  }
+}
 class UnexistedContactError extends PhonebookError {
+  constructor(message) {
+    super(message);
+    this.status = 404;
+  }
+}
+class UnexistedTokenError extends PhonebookError {
   constructor(message) {
     super(message);
     this.status = 404;
@@ -37,4 +49,6 @@ module.exports = {
   UnexistedContactError,
   UnauthorizedError,
   ConflictError,
+  AuthorizedStateError,
+  UnexistedTokenError,
 };

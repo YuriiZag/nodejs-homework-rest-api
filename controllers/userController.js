@@ -4,6 +4,8 @@ const {
   logoutHandler,
   currentUser,
   avatarChangeHandler,
+  resendEmailHandler,
+  verificationMailChecker,
 } = require("../models/auth");
 
 const registerController = async (req, res) => {
@@ -31,7 +33,7 @@ const currentUserController = async (req, res) => {
   const user = await currentUser(req.userId);
   
   res.json({ user: { email: user.email, subscription: user.subscription } });
-};
+}; 
 
 const avatarChangeController = async (req, res) => {
   
@@ -40,10 +42,24 @@ const avatarChangeController = async (req, res) => {
   res.json({ avatarPath: avatarPath });
 };
 
+const verificationMailCheckerController = async (req, res) => {
+  verificationMailChecker(req.params.verificationToken);
+  res.json({message: "Verification successfull"})
+}
+
+const resendEmailController = async (req, res) => {
+  resendEmailHandler(req.body);
+  res.json({ message: "Verification email sent" });
+}
+
+
+
 module.exports = {
   registerController,
   loginController,
   currentUserController,
   logoutController,
+  verificationMailCheckerController,
+  resendEmailController,
   avatarChangeController
 };
